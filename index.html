@@ -167,14 +167,30 @@
     </div>
   </div>
 
-  <!-- VIDEO FILE -->
-  <div class="field">
+  <!-- VIDEO FILE(S) -->
+  <div class="field" id="videoField">
     <label>Video File <span class="label-sub">select from your drive</span></label>
-    <div class="dropzone" id="dropzone" ondragover="handleDrag(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
-      <input type="file" id="videoFile" accept="video/*" onchange="fileSelected(this)">
-      <span class="dz-icon">🎞️</span>
-      <div class="dz-text">Click to select or drag & drop your video</div>
-      <div class="dz-name" id="dzName"></div>
+
+    <!-- Full video (always shown unless short-only) -->
+    <div id="fullVideoWrap">
+      <div style="color:#555;font-size:0.72rem;margin-bottom:6px;" id="fullVideoLabel">🎥 Full Video</div>
+      <div class="dropzone" id="dropzone" ondragover="handleDrag(event,'dropzone')" ondragleave="handleDragLeave('dropzone')" ondrop="handleDrop(event,'videoFile','dzName','dropzone')">
+        <input type="file" id="videoFile" accept="video/*" onchange="fileSelected(this,'dzName')">
+        <span class="dz-icon">🎞️</span>
+        <div class="dz-text">Click to select or drag & drop</div>
+        <div class="dz-name" id="dzName"></div>
+      </div>
+    </div>
+
+    <!-- Short video (only shown when type = short or both) -->
+    <div id="shortVideoWrap" style="display:none;margin-top:12px;">
+      <div style="color:#555;font-size:0.72rem;margin-bottom:6px;">⚡ Short</div>
+      <div class="dropzone" id="dropzone2" ondragover="handleDrag(event,'dropzone2')" ondragleave="handleDragLeave('dropzone2')" ondrop="handleDrop(event,'shortFile','dzName2','dropzone2')">
+        <input type="file" id="shortFile" accept="video/*" onchange="fileSelected(this,'dzName2')">
+        <span class="dz-icon">⚡</span>
+        <div class="dz-text">Click to select or drag & drop</div>
+        <div class="dz-name" id="dzName2"></div>
+      </div>
     </div>
   </div>
 
@@ -242,16 +258,33 @@ function selectType(type) {
   selectedType = type;
   ['full','short','both'].forEach(t => document.getElementById('btn-'+t).classList.remove('selected'));
   document.getElementById('btn-'+type).classList.add('selected');
-}
 
-function fileSelected(input) {
-  if (input.files && input.files[0]) {
-    videoFileName = input.files[0].name;
-    document.getElementById('dzName').textContent = '✓ ' + videoFileName;
-    document.getElementById('dzName').style.display = 'block';
-    document.querySelector('#dropzone .dz-text').textContent = 'File selected:';
+  const fullWrap = document.getElementById('fullVideoWrap');
+  const shortWrap = document.getElementById('shortVideoWrap');
+  const fullLabel = document.getElementById('fullVideoLabel');
+
+  if (type === 'full') {
+    fullWrap.style.display = 'block';
+    shortWrap.style.display = 'none';
+    fullLabel.style.display = 'none';
+  } else if (type === 'short') {
+    fullWrap.style.display = 'none';
+    shortWrap.style.display = 'block';
+  } else { // both
+    fullWrap.style.display = 'block';
+    shortWrap.style.display = 'block';
+    fullLabel.style.display = 'block';
   }
 }
+
+function fileSelected(input, nameId) {
+  if (input.files && input.files[0]) {
+    if (nameId === 'dzName') videoFileName = input.files[0].name;
+    document.getElementById(nameId).textContent = '✓ ' + input.files[0].name;
+    document.getElementById(nameId).style.display = 'block';
+  }
+}
+
 
 function thumbSelected(input, nameId) {
   if (input.files && input.files[0]) {
@@ -278,15 +311,14 @@ function handleDropTx(e) {
     txFileSelected(document.getElementById('transcriptFile'));
   }
 }
-function handleDrop(e) {
+function handleDrop(e, inputId, nameId, dzId) {
   e.preventDefault();
-  document.getElementById('dropzone').classList.remove('dragover');
+  document.getElementById(dzId||'dropzone').classList.remove('dragover');
   const file = e.dataTransfer.files[0];
   if (file) {
-    videoFileName = file.name;
-    document.getElementById('dzName').textContent = '✓ ' + videoFileName;
-    document.getElementById('dzName').style.display = 'block';
-    document.querySelector('#dropzone .dz-text').textContent = 'File selected:';
+    const dt = new DataTransfer(); dt.items.add(file);
+    document.getElementById(inputId||'videoFile').files = dt.files;
+    fileSelected(document.getElementById(inputId||'videoFile'), nameId||'dzName');
   }
 }
 
@@ -312,9 +344,11 @@ async function submitVideo() {
     if (t169.files[0]) formData.append('thumb169', t169.files[0]);
     if (t916.files[0]) formData.append('thumb916', t916.files[0]);
 
-    // Attach video file
+    // Attach video file(s)
     const videoInput = document.getElementById('videoFile');
     if (videoInput.files[0]) formData.append('video', videoInput.files[0]);
+    const shortInput = document.getElementById('shortFile');
+    if (shortInput && shortInput.files[0]) formData.append('short', shortInput.files[0]);
 
     // Attach transcript file
     const txInput = document.getElementById('transcriptFile');

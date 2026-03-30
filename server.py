@@ -36,13 +36,14 @@ def upload():
 
         saved = []
 
-        # Save video file
-        if "video" in request.files:
-            f = request.files["video"]
-            if f.filename:
-                dest = os.path.join(VIDEO_DIR, f.filename)
-                f.save(dest)
-                saved.append(f"Video: {f.filename}")
+        # Save video file(s)
+        for key, label in [("video", "Full"), ("short", "Short")]:
+            if key in request.files:
+                f = request.files[key]
+                if f.filename:
+                    dest = os.path.join(VIDEO_DIR, f.filename)
+                    f.save(dest)
+                    saved.append(f"{label} Video: {f.filename}")
 
         # Save transcript file
         transcript_name = None
@@ -71,10 +72,13 @@ def upload():
         import subprocess
         BOTBEAST = "botbeast@100.69.80.112"
         BUBBA_INBOX = "/Users/botbeast/bubba/video-inbox"
-        for filepath, subdir in [
-            (os.path.join(VIDEO_DIR, request.files['video'].filename) if 'video' in request.files and request.files['video'].filename else None, 'videos'),
-            (os.path.join(TRANSCRIPT_DIR, (request.files['transcript'].filename if 'transcript' in request.files and request.files['transcript'].filename else '')), 'transcripts'),
-        ]:
+        files_to_scp = []
+        for key in ['video', 'short']:
+            if key in request.files and request.files[key].filename:
+                files_to_scp.append((os.path.join(VIDEO_DIR, request.files[key].filename), 'videos'))
+        if 'transcript' in request.files and request.files['transcript'].filename:
+            files_to_scp.append((os.path.join(TRANSCRIPT_DIR, request.files['transcript'].filename), 'transcripts'))
+        for filepath, subdir in files_to_scp:
             if filepath and os.path.exists(filepath):
                 subprocess.run(['scp', '-o', 'StrictHostKeyChecking=no', filepath, f"{BOTBEAST}:{BUBBA_INBOX}/{subdir}/"], capture_output=True)
         for key, label in [('thumb169','thumbnails'), ('thumb916','thumbnails')]:
