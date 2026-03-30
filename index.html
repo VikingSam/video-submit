@@ -192,15 +192,25 @@
 
   <!-- THUMBNAILS -->
   <div class="field">
-    <label>Thumbnails <span class="label-sub">optional — paste Drive or Dropbox links</span></label>
+    <label>Thumbnails <span class="label-sub">optional</span></label>
     <div class="thumbnail-row">
       <div class="thumb-field">
-        <label>📺 16:9 (YouTube / Facebook)</label>
-        <input type="text" id="thumb169" placeholder="Drive or Dropbox link">
+        <label>📺 16:9 — YouTube / Facebook</label>
+        <div class="dropzone" style="padding:14px;text-align:center;" ondragover="handleDrag(event,'dz169')" ondragleave="handleDragLeave('dz169')" id="dz169">
+          <input type="file" id="thumb169" accept="image/*" onchange="thumbSelected(this,'name169')">
+          <div style="font-size:1.2rem;">🖼️</div>
+          <div class="dz-text" style="font-size:0.75rem;color:#555;">Click to select</div>
+          <div class="dz-name" id="name169" style="font-size:0.75rem;"></div>
+        </div>
       </div>
       <div class="thumb-field">
-        <label>📱 9:16 (Reels / TikTok)</label>
-        <input type="text" id="thumb916" placeholder="Drive or Dropbox link">
+        <label>📱 9:16 — Reels / TikTok</label>
+        <div class="dropzone" style="padding:14px;text-align:center;" ondragover="handleDrag(event,'dz916')" ondragleave="handleDragLeave('dz916')" id="dz916">
+          <input type="file" id="thumb916" accept="image/*" onchange="thumbSelected(this,'name916')">
+          <div style="font-size:1.2rem;">🖼️</div>
+          <div class="dz-text" style="font-size:0.75rem;color:#555;">Click to select</div>
+          <div class="dz-name" id="name916" style="font-size:0.75rem;"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -243,6 +253,12 @@ function fileSelected(input) {
   }
 }
 
+function thumbSelected(input, nameId) {
+  if (input.files && input.files[0]) {
+    document.getElementById(nameId).textContent = '✓ ' + input.files[0].name;
+    document.getElementById(nameId).style.display = 'block';
+  }
+}
 function txFileSelected(input) {
   if (input.files && input.files[0]) {
     document.getElementById('txName').textContent = '✓ ' + input.files[0].name;
@@ -276,8 +292,7 @@ function handleDrop(e) {
 
 async function submitVideo() {
   const transcript = document.getElementById('transcript').value.trim();
-  const thumb169 = document.getElementById('thumb169').value.trim();
-  const thumb916 = document.getElementById('thumb916').value.trim();
+  const thumb169 = ''; const thumb916 = ''; // now file-based
   const notes = document.getElementById('notes').value.trim();
   const statusMsg = document.getElementById('statusMsg');
 
@@ -292,8 +307,10 @@ async function submitVideo() {
     const formData = new FormData();
     formData.append('type', selectedType);
     formData.append('notes', notes);
-    formData.append('thumb169', thumb169);
-    formData.append('thumb916', thumb916);
+    const t169 = document.getElementById('thumb169');
+    const t916 = document.getElementById('thumb916');
+    if (t169.files[0]) formData.append('thumb169', t169.files[0]);
+    if (t916.files[0]) formData.append('thumb916', t916.files[0]);
 
     // Attach video file
     const videoInput = document.getElementById('videoFile');
