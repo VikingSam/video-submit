@@ -329,10 +329,13 @@ async function submitVideo() {
   const statusMsg = document.getElementById('statusMsg');
 
   if (!videoFileName) { statusMsg.textContent = 'Select a video file first.'; statusMsg.className = 'status-msg error'; return; }
-  if (!transcript) { statusMsg.textContent = 'Paste the transcript — Bubba needs it.'; statusMsg.className = 'status-msg error'; return; }
+  const txFile = document.getElementById('transcriptFile');
+  const hasTxFile = txFile && txFile.files && txFile.files[0];
+  if (!transcript && !hasTxFile) { statusMsg.textContent = 'Add a transcript — file or paste.'; statusMsg.className = 'status-msg error'; return; }
 
   document.getElementById('submitBtn').disabled = true;
-  statusMsg.textContent = 'Uploading to server...';
+  document.getElementById('submitBtn').textContent = '⏳ Sending to Bubba...';
+  statusMsg.textContent = '';
   statusMsg.className = 'status-msg';
 
   try {
@@ -364,7 +367,8 @@ async function submitVideo() {
     const data = await resp.json();
 
     if (data.ok) {
-      document.getElementById('formCard').style.display = 'none';
+    document.getElementById('submitBtn').textContent = '🔥 Send to Bubba';
+    document.getElementById('formCard').style.display = 'none';
       document.getElementById('successCard').style.display = 'block';
     } else {
       throw new Error(data.error || 'Upload failed');
@@ -374,6 +378,7 @@ async function submitVideo() {
     statusMsg.textContent = 'Upload error: ' + e.message;
     statusMsg.className = 'status-msg error';
     document.getElementById('submitBtn').disabled = false;
+    document.getElementById('submitBtn').textContent = '🔥 Send to Bubba';
   }
 }
 
