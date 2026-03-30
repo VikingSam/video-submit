@@ -67,6 +67,23 @@ def upload():
         if not saved:
             return jsonify({"ok": False, "error": "No files received"}), 400
 
+        # SCP files to Bubba's workspace on Botbeast
+        import subprocess
+        BOTBEAST = "botbeast@100.69.80.112"
+        BUBBA_INBOX = "/Users/botbeast/bubba/video-inbox"
+        for filepath, subdir in [
+            (os.path.join(VIDEO_DIR, request.files['video'].filename) if 'video' in request.files and request.files['video'].filename else None, 'videos'),
+            (os.path.join(TRANSCRIPT_DIR, (request.files['transcript'].filename if 'transcript' in request.files and request.files['transcript'].filename else '')), 'transcripts'),
+        ]:
+            if filepath and os.path.exists(filepath):
+                subprocess.run(['scp', '-o', 'StrictHostKeyChecking=no', filepath, f"{BOTBEAST}:{BUBBA_INBOX}/{subdir}/"], capture_output=True)
+        for key, label in [('thumb169','thumbnails'), ('thumb916','thumbnails')]:
+            if key in request.files and request.files[key].filename:
+                name, ext = os.path.splitext(request.files[key].filename)
+                local = os.path.join(THUMBNAIL_DIR, f"{name}_{label}{ext}")
+                if os.path.exists(local):
+                    subprocess.run(['scp', '-o', 'StrictHostKeyChecking=no', local, f"{BOTBEAST}:{BUBBA_INBOX}/thumbnails/"], capture_output=True)
+
         # Notify Blade via Telegram
         type_label = "Full Video" if video_type == "full" else "Short" if video_type == "short" else "Full + Short"
         thumb_info = ""
@@ -74,7 +91,7 @@ def upload():
         if thumb916: thumb_info += f"\n9:16 link: {thumb916}"
         notes_info = f"\nNotes: {notes}" if notes else ""
 
-        msg = f"🎬 New video drop from Sam!\n\nType: {type_label}\n" + "\n".join(saved) + thumb_info + notes_info + f"\n\nFiles saved to ~/clawd/video-inbox/"
+        msg = f"🎬 New video drop from Sam!\n\nType: {type_label}\n" + "\n".join(saved) + thumb_info + notes_info + f"\n\nFiles saved → Bubba's inbox on Botbeast"
         telegram(msg)
 
         return jsonify({"ok": True, "saved": saved})
