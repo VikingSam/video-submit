@@ -180,8 +180,14 @@
 
   <!-- TRANSCRIPT -->
   <div class="field">
-    <label>Transcript <span class="label-sub">paste from Descript</span></label>
-    <textarea id="transcript" placeholder="Paste your transcript here..."></textarea>
+    <label>Transcript <span class="label-sub">select file or paste text</span></label>
+    <div class="dropzone" id="txDropzone" style="padding:18px 20px;margin-bottom:10px;" ondragover="handleDrag(event,'txDropzone')" ondragleave="handleDragLeave('txDropzone')" ondrop="handleDropTx(event)">
+      <input type="file" id="transcriptFile" accept=".txt,.doc,.docx,.pdf,.srt" onchange="txFileSelected(this)">
+      <span class="dz-icon" style="font-size:1.8rem;">📄</span>
+      <div class="dz-text" style="font-size:0.85rem;">Click to select transcript file (.txt, .docx)</div>
+      <div class="dz-name" id="txName"></div>
+    </div>
+    <textarea id="transcript" placeholder="...or paste transcript text here"></textarea>
   </div>
 
   <!-- THUMBNAILS -->
@@ -217,8 +223,7 @@
 </div>
 
 <script>
-const TELEGRAM_BOT = '8392871149:AAHZazO8sJsExVppa8gdw_FM422HA35747E';
-const TELEGRAM_CHAT = '8323924187';
+const SERVER = 'http://100.90.244.61:8893';
 
 let selectedType = 'full';
 let videoFileName = null;
@@ -238,8 +243,25 @@ function fileSelected(input) {
   }
 }
 
-function handleDrag(e) { e.preventDefault(); document.getElementById('dropzone').classList.add('dragover'); }
-function handleDragLeave() { document.getElementById('dropzone').classList.remove('dragover'); }
+function txFileSelected(input) {
+  if (input.files && input.files[0]) {
+    document.getElementById('txName').textContent = '✓ ' + input.files[0].name;
+    document.getElementById('txName').style.display = 'block';
+    document.querySelector('#txDropzone .dz-text').textContent = 'File selected:';
+  }
+}
+function handleDrag(e, id) { e.preventDefault(); document.getElementById(id||'dropzone').classList.add('dragover'); }
+function handleDragLeave(id) { document.getElementById(id||'dropzone').classList.remove('dragover'); }
+function handleDropTx(e) {
+  e.preventDefault();
+  document.getElementById('txDropzone').classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    const dt = new DataTransfer(); dt.items.add(file);
+    document.getElementById('transcriptFile').files = dt.files;
+    txFileSelected(document.getElementById('transcriptFile'));
+  }
+}
 function handleDrop(e) {
   e.preventDefault();
   document.getElementById('dropzone').classList.remove('dragover');
@@ -263,39 +285,42 @@ async function submitVideo() {
   if (!transcript) { statusMsg.textContent = 'Paste the transcript — Bubba needs it.'; statusMsg.className = 'status-msg error'; return; }
 
   document.getElementById('submitBtn').disabled = true;
-  statusMsg.textContent = 'Sending to Bubba...';
+  statusMsg.textContent = 'Uploading to server...';
   statusMsg.className = 'status-msg';
 
-  const typeLabel = selectedType === 'full' ? 'Full Video' : selectedType === 'short' ? 'Short' : 'Full + Short';
-  const thumbInfo = (thumb169||thumb916) ? `\n\n🖼 Thumbnails:\n${thumb169?'16:9: '+thumb169:''}${thumb916?'\n9:16: '+thumb916:''}` : '';
-  const notesInfo = notes ? `\n\n📝 Notes: ${notes}` : '';
-
-  const msg = `🎬 New video from Sam!\n\nType: ${typeLabel}\nFile: ${videoFileName}${thumbInfo}${notesInfo}\n\nTranscript: ${transcript.length} chars — see next message`;
-
   try {
-    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT}/sendMessage`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ chat_id: TELEGRAM_CHAT, text: msg })
-    });
+    const formData = new FormData();
+    formData.append('type', selectedType);
+    formData.append('notes', notes);
+    formData.append('thumb169', thumb169);
+    formData.append('thumb916', thumb916);
 
-    // Send transcript in chunks if needed
-    const maxLen = 3800;
-    for (let i = 0; i < transcript.length; i += maxLen) {
-      const chunk = transcript.slice(i, i + maxLen);
-      const label = transcript.length > maxLen ? ` (part ${Math.floor(i/maxLen)+1})` : '';
-      await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT}/sendMessage`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ chat_id: TELEGRAM_CHAT, text: `📄 Transcript${label}:\n\n${chunk}` })
-      });
+    // Attach video file
+    const videoInput = document.getElementById('videoFile');
+    if (videoInput.files[0]) formData.append('video', videoInput.files[0]);
+
+    // Attach transcript file
+    const txInput = document.getElementById('transcriptFile');
+    if (txInput && txInput.files[0]) formData.append('transcript', txInput.files[0]);
+
+    // Also include pasted transcript as a text file if no file selected
+    if (transcript && !(txInput && txInput.files[0])) {
+      const blob = new Blob([transcript], {type: 'text/plain'});
+      formData.append('transcript', blob, (videoFileName||'video').replace(/\.[^.]+$/,'') + '_transcript.txt');
     }
 
-    document.getElementById('formCard').style.display = 'none';
-    document.getElementById('successCard').style.display = 'block';
+    const resp = await fetch(`${SERVER}/upload`, { method: 'POST', body: formData });
+    const data = await resp.json();
+
+    if (data.ok) {
+      document.getElementById('formCard').style.display = 'none';
+      document.getElementById('successCard').style.display = 'block';
+    } else {
+      throw new Error(data.error || 'Upload failed');
+    }
 
   } catch(e) {
-    statusMsg.textContent = 'Error sending. Check connection and try again.';
+    statusMsg.textContent = 'Upload error: ' + e.message;
     statusMsg.className = 'status-msg error';
     document.getElementById('submitBtn').disabled = false;
   }
