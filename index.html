@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎬 Drop a Video</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0a0a0f;
+    color: #e0e0e0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 40px 20px;
+  }
+
+  .back-btn {
+    position: fixed; top: 14px; left: 14px; z-index: 999;
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(10,8,4,0.85); border: 1px solid #c06020;
+    border-radius: 8px; padding: 7px 14px; text-decoration: none;
+    font-family: Georgia, serif; font-size: 0.78rem; font-weight: 700;
+    color: #c8973a; letter-spacing: 0.08em; backdrop-filter: blur(6px);
+  }
+  .back-btn:hover { border-color: #ff9040; color: #ffd080; }
+
+  h1 {
+    font-family: 'Cinzel', serif;
+    font-size: 1.8rem;
+    background: linear-gradient(90deg, #c8973a, #ff6b35);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .subtitle { color: #555; font-size: 0.85rem; margin-bottom: 36px; text-align: center; }
+
+  .card {
+    background: #12121a;
+    border: 1px solid #1e1e2e;
+    border-radius: 14px;
+    padding: 32px;
+    width: 100%;
+    max-width: 580px;
+  }
+
+  .field { margin-bottom: 22px; }
+  label { display: block; color: #888; font-size: 0.78rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+
+  input[type=text], textarea, select {
+    width: 100%;
+    background: #0e0e18;
+    border: 1px solid #2a2a3a;
+    border-radius: 8px;
+    color: #e0e0e0;
+    font-size: 0.95rem;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    font-family: inherit;
+  }
+  input[type=text]:focus, textarea:focus, select:focus { border-color: #c8973a; }
+  textarea { resize: vertical; min-height: 100px; }
+  select option { background: #0e0e18; }
+
+  .type-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+  }
+  .type-btn {
+    background: #0e0e18;
+    border: 2px solid #2a2a3a;
+    border-radius: 10px;
+    padding: 14px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.85rem;
+    color: #888;
+  }
+  .type-btn .icon { font-size: 1.6rem; display: block; margin-bottom: 6px; }
+  .type-btn:hover { border-color: #c8973a; color: #c8973a; }
+  .type-btn.selected { border-color: #c8973a; color: #c8973a; background: rgba(200,151,58,0.08); }
+
+  .rating-row { display: flex; align-items: center; gap: 16px; }
+  input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 6px;
+    background: #2a2a3a;
+    border-radius: 3px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: #c8973a;
+    cursor: pointer;
+  }
+  .rating-val {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #c8973a;
+    min-width: 30px;
+    text-align: center;
+  }
+
+  .filename-preview {
+    background: #080810;
+    border: 1px solid #1a1a2a;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.78rem;
+    color: #22c55e;
+    word-break: break-all;
+    min-height: 40px;
+    margin-top: 6px;
+  }
+  .filename-label { color: #555; font-size: 0.72rem; margin-top: 4px; }
+
+  .submit-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #c8973a, #ff6b35);
+    border: none;
+    border-radius: 10px;
+    color: #000;
+    font-size: 1rem;
+    font-weight: 700;
+    font-family: 'Cinzel', serif;
+    letter-spacing: 1px;
+    padding: 16px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.2s;
+    margin-top: 8px;
+  }
+  .submit-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .success {
+    display: none;
+    text-align: center;
+    padding: 40px 20px;
+  }
+  .success .icon { font-size: 4rem; margin-bottom: 16px; }
+  .success h2 { font-family: 'Cinzel', serif; color: #22c55e; margin-bottom: 12px; }
+  .success .filename-out {
+    background: #080810;
+    border: 1px solid #1a2a1a;
+    border-radius: 8px;
+    padding: 14px;
+    font-family: monospace;
+    font-size: 0.82rem;
+    color: #22c55e;
+    word-break: break-all;
+    margin: 16px 0;
+  }
+  .success p { color: #666; font-size: 0.85rem; }
+  .reset-btn {
+    background: transparent; border: 1px solid #333; color: #666;
+    border-radius: 8px; padding: 10px 24px; cursor: pointer;
+    font-size: 0.85rem; margin-top: 20px;
+  }
+  .reset-btn:hover { border-color: #c8973a; color: #c8973a; }
+
+  .status-msg { color: #888; font-size: 0.8rem; text-align: center; margin-top: 10px; min-height: 20px; }
+  .status-msg.error { color: #ef4444; }
+  .status-msg.ok { color: #22c55e; }
+</style>
+</head>
+<body>
+
+<a href="https://vikingsam.github.io/hq/" class="back-btn">🛡 Portal</a>
+
+<h1>🎬 Drop a Video</h1>
+<p class="subtitle">Fill this out and hit submit — Bubba handles the rest</p>
+
+<div class="card" id="formCard">
+
+  <div class="field">
+    <label>Video Type</label>
+    <div class="type-grid">
+      <div class="type-btn" id="btn-full" onclick="selectType('full')">
+        <span class="icon">🎥</span>
+        Full Video
+      </div>
+      <div class="type-btn" id="btn-short" onclick="selectType('short')">
+        <span class="icon">⚡</span>
+        Short
+      </div>
+      <div class="type-btn" id="btn-both" onclick="selectType('both')">
+        <span class="icon">🎬</span>
+        Both
+      </div>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Video Title (from Descript)</label>
+    <input type="text" id="title" placeholder="e.g. TRT Cortisol Final" oninput="updatePreview()">
+  </div>
+
+  <div class="field">
+    <label>Hook / Topic (short phrase, no spaces)</label>
+    <input type="text" id="hook" placeholder="e.g. CortisolKillingYourTRT" oninput="sanitizeHook(); updatePreview()">
+  </div>
+
+  <div class="field">
+    <label>Your Rating</label>
+    <div class="rating-row">
+      <input type="range" id="rating" min="1" max="10" value="7" oninput="document.getElementById('ratingVal').textContent=this.value; updatePreview()">
+      <span class="rating-val" id="ratingVal">7</span>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Filename Preview</label>
+    <div class="filename-preview" id="preview">Fill in the fields above...</div>
+    <div class="filename-label">Use this exact name when you drop the file in Dropbox</div>
+  </div>
+
+  <div class="field">
+    <label>Transcript (optional — paste from Descript)</label>
+    <textarea id="transcript" placeholder="Paste transcript here for Bubba to work with..."></textarea>
+  </div>
+
+  <button class="submit-btn" id="submitBtn" onclick="submitVideo()">🔥 Send to Bubba</button>
+  <div class="status-msg" id="statusMsg"></div>
+</div>
+
+<div class="success" id="successCard">
+  <div class="icon">✅</div>
+  <h2>Sent to Bubba!</h2>
+  <div class="filename-out" id="filenameOut"></div>
+  <p>Drop the file in Dropbox with that exact name.<br>Bubba's on it.</p>
+  <button class="reset-btn" onclick="resetForm()">Submit Another</button>
+</div>
+
+<script>
+const AIRTABLE_KEY = 'patXXXXXX'; // placeholder - server-side handles this
+const TELEGRAM_BOT = '8392871149:AAHZazO8sJsExVppa8gdw_FM422HA35747E';
+const TELEGRAM_CHAT = '8323924187';
+const AIRTABLE_BASE = 'apphRVhGXOrjVMRNn';
+const AIRTABLE_TABLE = 'tbl3Yy2ytpdUMpOv5';
+
+let selectedType = null;
+
+function selectType(type) {
+  selectedType = type;
+  ['full','short','both'].forEach(t => document.getElementById('btn-'+t).classList.remove('selected'));
+  document.getElementById('btn-'+type).classList.add('selected');
+  updatePreview();
+}
+
+function sanitizeHook() {
+  const h = document.getElementById('hook');
+  h.value = h.value.replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '');
+}
+
+function getDate() {
+  const d = new Date();
+  return d.toISOString().split('T')[0];
+}
+
+function buildFilename(type) {
+  const title = document.getElementById('title').value.trim() || 'VideoTitle';
+  const hook = document.getElementById('hook').value.trim() || 'Hook';
+  const rating = document.getElementById('rating').value;
+  const date = getDate();
+  const tag = type === 'short' ? '_SHORT' : '';
+  return `${title}${tag}_${date}_${hook}_${rating}.mp4`;
+}
+
+function updatePreview() {
+  const preview = document.getElementById('preview');
+  if (!selectedType) { preview.textContent = 'Select a video type above...'; return; }
+  if (selectedType === 'both') {
+    preview.textContent = buildFilename('full') + '\n' + buildFilename('short');
+  } else {
+    preview.textContent = buildFilename(selectedType);
+  }
+}
+
+async function submitVideo() {
+  const title = document.getElementById('title').value.trim();
+  const hook = document.getElementById('hook').value.trim();
+  const transcript = document.getElementById('transcript').value.trim();
+  const rating = document.getElementById('rating').value;
+  const statusMsg = document.getElementById('statusMsg');
+
+  if (!selectedType) { statusMsg.textContent = 'Select Full Video, Short, or Both.'; statusMsg.className = 'status-msg error'; return; }
+  if (!title) { statusMsg.textContent = 'Add the video title.'; statusMsg.className = 'status-msg error'; return; }
+  if (!hook) { statusMsg.textContent = 'Add a hook phrase.'; statusMsg.className = 'status-msg error'; return; }
+
+  document.getElementById('submitBtn').disabled = true;
+  statusMsg.textContent = 'Sending to Bubba...';
+  statusMsg.className = 'status-msg';
+
+  const filename = selectedType === 'both'
+    ? buildFilename('full') + ' + ' + buildFilename('short')
+    : buildFilename(selectedType);
+
+  const typeLabel = selectedType === 'full' ? 'Full Video' : selectedType === 'short' ? 'Short' : 'Full + Short';
+  const msg = `🎬 New video from Sam!\n\nType: ${typeLabel}\nTitle: ${title}\nHook: ${hook}\nRating: ${rating}/10\n\nFilename(s):\n${filename}${transcript ? '\n\nTranscript attached (' + transcript.length + ' chars)' : ''}`;
+
+  try {
+    // Send Telegram notification to Sam/Blade
+    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT}/sendMessage`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ chat_id: TELEGRAM_CHAT, text: msg })
+    });
+
+    // If transcript provided, send it as a follow-up
+    if (transcript) {
+      const truncated = transcript.length > 3000 ? transcript.substring(0, 3000) + '...' : transcript;
+      await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT}/sendMessage`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ chat_id: TELEGRAM_CHAT, text: `📄 Transcript for "${title}":\n\n${truncated}` })
+      });
+    }
+
+    // Show success
+    document.getElementById('formCard').style.display = 'none';
+    document.getElementById('filenameOut').textContent = filename;
+    document.getElementById('successCard').style.display = 'block';
+
+  } catch(e) {
+    statusMsg.textContent = 'Error sending. Try again.';
+    statusMsg.className = 'status-msg error';
+    document.getElementById('submitBtn').disabled = false;
+  }
+}
+
+function resetForm() {
+  selectedType = null;
+  ['full','short','both'].forEach(t => document.getElementById('btn-'+t).classList.remove('selected'));
+  document.getElementById('title').value = '';
+  document.getElementById('hook').value = '';
+  document.getElementById('rating').value = 7;
+  document.getElementById('ratingVal').textContent = '7';
+  document.getElementById('transcript').value = '';
+  document.getElementById('preview').textContent = 'Fill in the fields above...';
+  document.getElementById('submitBtn').disabled = false;
+  document.getElementById('statusMsg').textContent = '';
+  document.getElementById('formCard').style.display = 'block';
+  document.getElementById('successCard').style.display = 'none';
+}
+
+selectType('full'); // default
+</script>
+</body>
+</html>
