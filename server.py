@@ -89,13 +89,16 @@ def upload():
                     subprocess.run(['scp', '-o', 'StrictHostKeyChecking=no', local, f"{BOTBEAST}:{BUBBA_INBOX}/thumbnails/"], capture_output=True)
 
         # Notify Blade via Telegram
+        parent_id = request.form.get("parent_id", "")
+        parent_title = request.form.get("parent_title", "")
         type_label = "Full Video" if video_type == "full" else "Short" if video_type == "short" else "Full + Short"
+        parent_info = f"\nParent Full Video: {parent_title}" if parent_title else ""
         thumb_info = ""
         if thumb169: thumb_info += f"\n16:9 link: {thumb169}"
         if thumb916: thumb_info += f"\n9:16 link: {thumb916}"
         notes_info = f"\nNotes: {notes}" if notes else ""
 
-        msg = f"🎬 New video drop from Sam!\n\nType: {type_label}\n" + "\n".join(saved) + thumb_info + notes_info + f"\n\nFiles saved → Bubba's inbox on Botbeast"
+        msg = f"🎬 New video drop from Sam!\n\nType: {type_label}\n" + "\n".join(saved) + parent_info + thumb_info + notes_info + f"\n\nFiles → Bubba's inbox on Botbeast"
         telegram(msg)
 
         return jsonify({"ok": True, "saved": saved})
@@ -103,6 +106,33 @@ def upload():
     except Exception as e:
         telegram(f"⚠️ Video upload error: {str(e)}")
         return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route("/videos")
+def get_videos():
+    """Return list of full videos from Airtable Video Registry for the dropdown."""
+    try:
+        MATON_KEY = "4fYrutTuer3xhxhdyvNHieAkYoDq-1GUpIrnwBqyHqyU6Xl_YBI1Dl0Xe17j-JUEWAd0_DV6yjFQq7XSbpSH-YdgABPWNVfPeo4"
+        resp = requests.get(
+            "https://gateway.maton.ai/airtable/v0/apphRVhGXOrjVMRNn/Video%20Registry",
+            headers={"Authorization": f"Bearer {MATON_KEY}"},
+            params={"sort[0][field]": "Date Posted", "sort[0][direction]": "desc", "maxRecords": 50},
+            timeout=10
+        )
+        data = resp.json()
+        videos = []
+        for rec in data.get("records", []):
+            f = rec.get("fields", {})
+            videos.append({
+                "id": rec["id"],
+                "title": f.get("Title", "Untitled"),
+                "date": f.get("Date Posted", "")
+            })
+        return jsonify({"ok": True, "videos": videos})
+    except Exception as e:
+        return jsonify({"ok": False, "videos": [], "error": str(e)})
+
+# Also handle parent video info in upload
+# (server already logs it via the saved list — Telegram message will include it)
 
 @app.route("/health")
 def health():

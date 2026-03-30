@@ -167,6 +167,16 @@
     </div>
   </div>
 
+
+  <!-- PARENT FULL VIDEO (shown when type = short or both) -->
+  <div class="field" id="parentVideoField" style="display:none;">
+    <label>Which full video is this short from? <span class="label-sub">optional but recommended</span></label>
+    <select id="parentVideo" style="width:100%;background:#0e0e18;border:1px solid #2a2a3a;border-radius:8px;color:#e0e0e0;font-size:0.95rem;padding:12px 14px;outline:none;">
+      <option value="">Loading full videos...</option>
+    </select>
+    <div style="color:#444;font-size:0.72rem;margin-top:5px;">Bubba will add the full video link to each platform's description</div>
+  </div>
+
   <!-- VIDEO FILE(S) -->
   <div class="field" id="videoField">
     <label>Video File <span class="label-sub">select from your drive</span></label>
@@ -267,15 +277,37 @@ function selectType(type) {
     fullWrap.style.display = 'block';
     shortWrap.style.display = 'none';
     fullLabel.style.display = 'none';
+    document.getElementById('parentVideoField').style.display = 'none';
   } else if (type === 'short') {
     fullWrap.style.display = 'none';
     shortWrap.style.display = 'block';
+    document.getElementById('parentVideoField').style.display = 'block';
   } else { // both
     fullWrap.style.display = 'block';
     shortWrap.style.display = 'block';
     fullLabel.style.display = 'block';
+    document.getElementById('parentVideoField').style.display = 'block';
   }
 }
+
+// Load full videos from Airtable Video Registry
+async function loadFullVideos() {
+  try {
+    const resp = await fetch('http://100.90.244.61:8893/videos');
+    const data = await resp.json();
+    const sel = document.getElementById('parentVideo');
+    sel.innerHTML = '<option value="">— None / not listed yet —</option>';
+    (data.videos||[]).forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v.id;
+      opt.textContent = v.title + (v.date ? ' (' + v.date + ')' : '');
+      sel.appendChild(opt);
+    });
+  } catch(e) {
+    document.getElementById('parentVideo').innerHTML = '<option value="">— Could not load (no connection) —</option>';
+  }
+}
+loadFullVideos();
 
 function fileSelected(input, nameId) {
   if (input.files && input.files[0]) {
@@ -342,6 +374,9 @@ async function submitVideo() {
     const formData = new FormData();
     formData.append('type', selectedType);
     formData.append('notes', notes);
+    const parentVideo = document.getElementById('parentVideo').value;
+    const parentTitle = document.getElementById('parentVideo').selectedOptions[0]?.textContent || '';
+    if (parentVideo) { formData.append('parent_id', parentVideo); formData.append('parent_title', parentTitle); }
     const t169 = document.getElementById('thumb169');
     const t916 = document.getElementById('thumb916');
     if (t169.files[0]) formData.append('thumb169', t169.files[0]);
