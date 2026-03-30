@@ -15,7 +15,6 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
     padding: 40px 20px;
   }
 
@@ -25,7 +24,7 @@
     background: rgba(10,8,4,0.85); border: 1px solid #c06020;
     border-radius: 8px; padding: 7px 14px; text-decoration: none;
     font-family: Georgia, serif; font-size: 0.78rem; font-weight: 700;
-    color: #c8973a; letter-spacing: 0.08em; backdrop-filter: blur(6px);
+    color: #c8973a; letter-spacing: 0.08em;
   }
   .back-btn:hover { border-color: #ff9040; color: #ffd080; }
 
@@ -46,13 +45,18 @@
     border-radius: 14px;
     padding: 32px;
     width: 100%;
-    max-width: 580px;
+    max-width: 600px;
   }
 
-  .field { margin-bottom: 22px; }
-  label { display: block; color: #888; font-size: 0.78rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+  .field { margin-bottom: 24px; }
+  label {
+    display: block; color: #888; font-size: 0.78rem;
+    font-weight: 600; letter-spacing: 1px;
+    text-transform: uppercase; margin-bottom: 8px;
+  }
+  .label-sub { color: #444; font-size: 0.72rem; font-weight: 400; text-transform: none; letter-spacing: 0; margin-left: 8px; }
 
-  input[type=text], textarea, select {
+  input[type=text], textarea {
     width: 100%;
     background: #0e0e18;
     border: 1px solid #2a2a3a;
@@ -64,67 +68,46 @@
     transition: border-color 0.2s;
     font-family: inherit;
   }
-  input[type=text]:focus, textarea:focus, select:focus { border-color: #c8973a; }
-  textarea { resize: vertical; min-height: 100px; }
-  select option { background: #0e0e18; }
+  input[type=text]:focus, textarea:focus { border-color: #c8973a; }
+  textarea { resize: vertical; min-height: 160px; }
 
-  .type-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 10px;
+  /* Drop zone */
+  .dropzone {
+    border: 2px dashed #2a2a3a;
+    border-radius: 12px;
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
   }
-  .type-btn {
+  .dropzone:hover, .dropzone.dragover { border-color: #c8973a; background: rgba(200,151,58,0.04); }
+  .dropzone input[type=file] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .dropzone .dz-icon { font-size: 2.5rem; display: block; margin-bottom: 10px; }
+  .dropzone .dz-text { color: #666; font-size: 0.9rem; }
+  .dropzone .dz-name { color: #c8973a; font-weight: 600; font-size: 0.95rem; margin-top: 8px; display: none; }
+
+  /* Type toggle */
+  .toggle-row { display: flex; gap: 10px; }
+  .toggle-btn {
+    flex: 1;
     background: #0e0e18;
     border: 2px solid #2a2a3a;
     border-radius: 10px;
-    padding: 14px 10px;
+    padding: 12px 10px;
     text-align: center;
     cursor: pointer;
     transition: all 0.2s;
     font-size: 0.85rem;
-    color: #888;
+    color: #666;
   }
-  .type-btn .icon { font-size: 1.6rem; display: block; margin-bottom: 6px; }
-  .type-btn:hover { border-color: #c8973a; color: #c8973a; }
-  .type-btn.selected { border-color: #c8973a; color: #c8973a; background: rgba(200,151,58,0.08); }
+  .toggle-btn .icon { font-size: 1.4rem; display: block; margin-bottom: 4px; }
+  .toggle-btn.selected { border-color: #c8973a; color: #c8973a; background: rgba(200,151,58,0.06); }
 
-  .rating-row { display: flex; align-items: center; gap: 16px; }
-  input[type=range] {
-    flex: 1;
-    -webkit-appearance: none;
-    height: 6px;
-    background: #2a2a3a;
-    border-radius: 3px;
-    outline: none;
-  }
-  input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 20px; height: 20px;
-    border-radius: 50%;
-    background: #c8973a;
-    cursor: pointer;
-  }
-  .rating-val {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #c8973a;
-    min-width: 30px;
-    text-align: center;
-  }
-
-  .filename-preview {
-    background: #080810;
-    border: 1px solid #1a1a2a;
-    border-radius: 8px;
-    padding: 12px 14px;
-    font-family: 'Courier New', monospace;
-    font-size: 0.78rem;
-    color: #22c55e;
-    word-break: break-all;
-    min-height: 40px;
-    margin-top: 6px;
-  }
-  .filename-label { color: #555; font-size: 0.72rem; margin-top: 4px; }
+  .thumbnail-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .thumb-field label { font-size: 0.72rem; color: #555; margin-bottom: 5px; letter-spacing: 0.5px; }
 
   .submit-btn {
     width: 100%;
@@ -138,41 +121,25 @@
     letter-spacing: 1px;
     padding: 16px;
     cursor: pointer;
-    transition: opacity 0.2s, transform 0.2s;
-    margin-top: 8px;
+    transition: opacity 0.2s;
+    margin-top: 4px;
   }
-  .submit-btn:hover { opacity: 0.9; transform: translateY(-1px); }
-  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .submit-btn:hover { opacity: 0.9; }
+  .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-  .success {
-    display: none;
-    text-align: center;
-    padding: 40px 20px;
-  }
-  .success .icon { font-size: 4rem; margin-bottom: 16px; }
-  .success h2 { font-family: 'Cinzel', serif; color: #22c55e; margin-bottom: 12px; }
-  .success .filename-out {
-    background: #080810;
-    border: 1px solid #1a2a1a;
-    border-radius: 8px;
-    padding: 14px;
-    font-family: monospace;
-    font-size: 0.82rem;
-    color: #22c55e;
-    word-break: break-all;
-    margin: 16px 0;
-  }
-  .success p { color: #666; font-size: 0.85rem; }
+  .status-msg { color: #888; font-size: 0.8rem; text-align: center; margin-top: 10px; min-height: 20px; }
+  .status-msg.error { color: #ef4444; }
+
+  .success { display: none; text-align: center; padding: 40px 20px; }
+  .success .big { font-size: 3.5rem; margin-bottom: 12px; }
+  .success h2 { font-family: 'Cinzel', serif; color: #22c55e; margin-bottom: 10px; }
+  .success p { color: #555; font-size: 0.85rem; line-height: 1.6; }
   .reset-btn {
     background: transparent; border: 1px solid #333; color: #666;
     border-radius: 8px; padding: 10px 24px; cursor: pointer;
     font-size: 0.85rem; margin-top: 20px;
   }
   .reset-btn:hover { border-color: #c8973a; color: #c8973a; }
-
-  .status-msg { color: #888; font-size: 0.8rem; text-align: center; margin-top: 10px; min-height: 20px; }
-  .status-msg.error { color: #ef4444; }
-  .status-msg.ok { color: #22c55e; }
 </style>
 </head>
 <body>
@@ -180,79 +147,62 @@
 <a href="https://vikingsam.github.io/hq/" class="back-btn">🛡 Portal</a>
 
 <h1>🎬 Drop a Video</h1>
-<p class="subtitle">Fill this out and hit submit — Bubba handles the rest</p>
+<p class="subtitle">Video + transcript + thumbnails. Bubba handles everything else.</p>
 
 <div class="card" id="formCard">
 
+  <!-- VIDEO TYPE -->
   <div class="field">
-    <label>Video Type</label>
-    <div class="type-grid">
-      <div class="type-btn" id="btn-full" onclick="selectType('full')">
-        <span class="icon">🎥</span>
-        Full Video
+    <label>What are you dropping?</label>
+    <div class="toggle-row">
+      <div class="toggle-btn selected" id="btn-full" onclick="selectType('full')">
+        <span class="icon">🎥</span>Full Video
       </div>
-      <div class="type-btn" id="btn-short" onclick="selectType('short')">
-        <span class="icon">⚡</span>
-        Short
+      <div class="toggle-btn" id="btn-short" onclick="selectType('short')">
+        <span class="icon">⚡</span>Short
       </div>
-      <div class="type-btn" id="btn-both" onclick="selectType('both')">
-        <span class="icon">🎬</span>
-        Both
+      <div class="toggle-btn" id="btn-both" onclick="selectType('both')">
+        <span class="icon">🎬</span>Both
       </div>
     </div>
   </div>
 
+  <!-- VIDEO FILE -->
   <div class="field">
-    <label>Video Title (from Descript)</label>
-    <input type="text" id="title" placeholder="e.g. TRT Cortisol Final" oninput="updatePreview()">
-  </div>
-
-  <div class="field">
-    <label>Hook / Topic (short phrase, no spaces)</label>
-    <input type="text" id="hook" placeholder="e.g. CortisolKillingYourTRT" oninput="sanitizeHook(); updatePreview()">
-  </div>
-
-  <div class="field">
-    <label>Your Rating</label>
-    <div class="rating-row">
-      <input type="range" id="rating" min="1" max="10" value="7" oninput="document.getElementById('ratingVal').textContent=this.value; updatePreview()">
-      <span class="rating-val" id="ratingVal">7</span>
+    <label>Video File <span class="label-sub">select from your drive</span></label>
+    <div class="dropzone" id="dropzone" ondragover="handleDrag(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+      <input type="file" id="videoFile" accept="video/*" onchange="fileSelected(this)">
+      <span class="dz-icon">🎞️</span>
+      <div class="dz-text">Click to select or drag & drop your video</div>
+      <div class="dz-name" id="dzName"></div>
     </div>
   </div>
 
+  <!-- TRANSCRIPT -->
   <div class="field">
-    <label>Filename Preview</label>
-    <div class="filename-preview" id="preview">Fill in the fields above...</div>
-    <div class="filename-label">Use this exact name when you drop the file in Dropbox</div>
+    <label>Transcript <span class="label-sub">paste from Descript</span></label>
+    <textarea id="transcript" placeholder="Paste your transcript here..."></textarea>
   </div>
 
+  <!-- THUMBNAILS -->
   <div class="field">
-    <label>Aspect Ratio</label>
-    <div class="type-grid">
-      <div class="type-btn" id="btn-169" onclick="selectRatio('169')">
-        <span class="icon">📺</span>
-        16:9<br><small style="color:#555">YouTube / FB</small>
+    <label>Thumbnails <span class="label-sub">optional — paste Drive or Dropbox links</span></label>
+    <div class="thumbnail-row">
+      <div class="thumb-field">
+        <label>📺 16:9 (YouTube / Facebook)</label>
+        <input type="text" id="thumb169" placeholder="Drive or Dropbox link">
       </div>
-      <div class="type-btn" id="btn-916" onclick="selectRatio('916')">
-        <span class="icon">📱</span>
-        9:16<br><small style="color:#555">Reels / TikTok</small>
-      </div>
-      <div class="type-btn" id="btn-both-ratio" onclick="selectRatio('both')">
-        <span class="icon">🔀</span>
-        Both
+      <div class="thumb-field">
+        <label>📱 9:16 (Reels / TikTok)</label>
+        <input type="text" id="thumb916" placeholder="Drive or Dropbox link">
       </div>
     </div>
   </div>
 
+  <!-- NOTES -->
   <div class="field">
-    <label>Thumbnail Link(s) — optional</label>
-    <input type="text" id="thumb169" placeholder="16:9 thumbnail — Google Drive or Dropbox link">
-    <input type="text" id="thumb916" placeholder="9:16 thumbnail — Google Drive or Dropbox link" style="margin-top:8px">
-  </div>
-
-  <div class="field">
-    <label>Transcript (optional — paste from Descript)</label>
-    <textarea id="transcript" placeholder="Paste transcript here for Bubba to work with..."></textarea>
+    <label>Notes for Bubba <span class="label-sub">optional</span></label>
+    <input type="text" id="notes" placeholder="e.g. Focus on the cortisol angle for the hook">
   </div>
 
   <button class="submit-btn" id="submitBtn" onclick="submitVideo()">🔥 Send to Bubba</button>
@@ -260,145 +210,114 @@
 </div>
 
 <div class="success" id="successCard">
-  <div class="icon">✅</div>
-  <h2>Sent to Bubba!</h2>
-  <div class="filename-out" id="filenameOut"></div>
-  <p>Drop the file in Dropbox with that exact name.<br>Bubba's on it.</p>
-  <button class="reset-btn" onclick="resetForm()">Submit Another</button>
+  <div class="big">✅</div>
+  <h2>Bubba's on it.</h2>
+  <p>He has the transcript, thumbnails, and video name.<br>He'll write captions, titles, and queue it up.</p>
+  <button class="reset-btn" onclick="resetForm()">Drop Another</button>
 </div>
 
 <script>
-const AIRTABLE_KEY = 'patXXXXXX'; // placeholder - server-side handles this
 const TELEGRAM_BOT = '8392871149:AAHZazO8sJsExVppa8gdw_FM422HA35747E';
 const TELEGRAM_CHAT = '8323924187';
-const AIRTABLE_BASE = 'apphRVhGXOrjVMRNn';
-const AIRTABLE_TABLE = 'tbl3Yy2ytpdUMpOv5';
 
-let selectedType = null;
-let selectedRatio = null;
-
-function selectRatio(ratio) {
-  selectedRatio = ratio;
-  ['169','916','both'].forEach(r => document.getElementById('btn-'+r+'-ratio')?.classList.remove('selected'));
-  // handle btn-both-ratio separately
-  document.getElementById('btn-169')?.classList.remove('selected');
-  document.getElementById('btn-916')?.classList.remove('selected');
-  document.getElementById('btn-both-ratio')?.classList.remove('selected');
-  if (ratio === '169') document.getElementById('btn-169').classList.add('selected');
-  else if (ratio === '916') document.getElementById('btn-916').classList.add('selected');
-  else document.getElementById('btn-both-ratio').classList.add('selected');
-  updatePreview();
-}
+let selectedType = 'full';
+let videoFileName = null;
 
 function selectType(type) {
   selectedType = type;
   ['full','short','both'].forEach(t => document.getElementById('btn-'+t).classList.remove('selected'));
   document.getElementById('btn-'+type).classList.add('selected');
-  updatePreview();
 }
 
-function sanitizeHook() {
-  const h = document.getElementById('hook');
-  h.value = h.value.replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '');
+function fileSelected(input) {
+  if (input.files && input.files[0]) {
+    videoFileName = input.files[0].name;
+    document.getElementById('dzName').textContent = '✓ ' + videoFileName;
+    document.getElementById('dzName').style.display = 'block';
+    document.querySelector('#dropzone .dz-text').textContent = 'File selected:';
+  }
 }
 
-function getDate() {
-  const d = new Date();
-  return d.toISOString().split('T')[0];
-}
-
-function buildFilename(type) {
-  const title = document.getElementById('title').value.trim() || 'VideoTitle';
-  const hook = document.getElementById('hook').value.trim() || 'Hook';
-  const rating = document.getElementById('rating').value;
-  const date = getDate();
-  const tag = type === 'short' ? '_SHORT' : '';
-  return `${title}${tag}_${date}_${hook}_${rating}.mp4`;
-}
-
-function updatePreview() {
-  const preview = document.getElementById('preview');
-  if (!selectedType) { preview.textContent = 'Select a video type above...'; return; }
-  if (selectedType === 'both') {
-    preview.textContent = buildFilename('full') + '\n' + buildFilename('short');
-  } else {
-    preview.textContent = buildFilename(selectedType);
+function handleDrag(e) { e.preventDefault(); document.getElementById('dropzone').classList.add('dragover'); }
+function handleDragLeave() { document.getElementById('dropzone').classList.remove('dragover'); }
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropzone').classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    videoFileName = file.name;
+    document.getElementById('dzName').textContent = '✓ ' + videoFileName;
+    document.getElementById('dzName').style.display = 'block';
+    document.querySelector('#dropzone .dz-text').textContent = 'File selected:';
   }
 }
 
 async function submitVideo() {
-  const title = document.getElementById('title').value.trim();
-  const hook = document.getElementById('hook').value.trim();
   const transcript = document.getElementById('transcript').value.trim();
-  const rating = document.getElementById('rating').value;
+  const thumb169 = document.getElementById('thumb169').value.trim();
+  const thumb916 = document.getElementById('thumb916').value.trim();
+  const notes = document.getElementById('notes').value.trim();
   const statusMsg = document.getElementById('statusMsg');
 
-  if (!selectedType) { statusMsg.textContent = 'Select Full Video, Short, or Both.'; statusMsg.className = 'status-msg error'; return; }
-  if (!title) { statusMsg.textContent = 'Add the video title.'; statusMsg.className = 'status-msg error'; return; }
-  if (!hook) { statusMsg.textContent = 'Add a hook phrase.'; statusMsg.className = 'status-msg error'; return; }
+  if (!videoFileName) { statusMsg.textContent = 'Select a video file first.'; statusMsg.className = 'status-msg error'; return; }
+  if (!transcript) { statusMsg.textContent = 'Paste the transcript — Bubba needs it.'; statusMsg.className = 'status-msg error'; return; }
 
   document.getElementById('submitBtn').disabled = true;
   statusMsg.textContent = 'Sending to Bubba...';
   statusMsg.className = 'status-msg';
 
-  const filename = selectedType === 'both'
-    ? buildFilename('full') + ' + ' + buildFilename('short')
-    : buildFilename(selectedType);
-
-  const thumb169 = document.getElementById('thumb169').value.trim();
-  const thumb916 = document.getElementById('thumb916').value.trim();
-  const ratioLabel = selectedRatio === '169' ? '16:9' : selectedRatio === '916' ? '9:16' : selectedRatio === 'both' ? '16:9 + 9:16' : 'Not specified';
   const typeLabel = selectedType === 'full' ? 'Full Video' : selectedType === 'short' ? 'Short' : 'Full + Short';
-  const thumbInfo = (thumb169 || thumb916) ? `\n\nThumbnails:\n${thumb169 ? '16:9: '+thumb169 : ''}${thumb916 ? '\n9:16: '+thumb916 : ''}` : '';
-  const msg = `🎬 New video from Sam!\n\nType: ${typeLabel}\nRatio: ${ratioLabel}\nTitle: ${title}\nHook: ${hook}\nRating: ${rating}/10\n\nFilename(s):\n${filename}${thumbInfo}${transcript ? '\n\nTranscript attached (' + transcript.length + ' chars)' : ''}`;
+  const thumbInfo = (thumb169||thumb916) ? `\n\n🖼 Thumbnails:\n${thumb169?'16:9: '+thumb169:''}${thumb916?'\n9:16: '+thumb916:''}` : '';
+  const notesInfo = notes ? `\n\n📝 Notes: ${notes}` : '';
+
+  const msg = `🎬 New video from Sam!\n\nType: ${typeLabel}\nFile: ${videoFileName}${thumbInfo}${notesInfo}\n\nTranscript: ${transcript.length} chars — see next message`;
 
   try {
-    // Send Telegram notification to Sam/Blade
     await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT}/sendMessage`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ chat_id: TELEGRAM_CHAT, text: msg })
     });
 
-    // If transcript provided, send it as a follow-up
-    if (transcript) {
-      const truncated = transcript.length > 3000 ? transcript.substring(0, 3000) + '...' : transcript;
+    // Send transcript in chunks if needed
+    const maxLen = 3800;
+    for (let i = 0; i < transcript.length; i += maxLen) {
+      const chunk = transcript.slice(i, i + maxLen);
+      const label = transcript.length > maxLen ? ` (part ${Math.floor(i/maxLen)+1})` : '';
       await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT}/sendMessage`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ chat_id: TELEGRAM_CHAT, text: `📄 Transcript for "${title}":\n\n${truncated}` })
+        body: JSON.stringify({ chat_id: TELEGRAM_CHAT, text: `📄 Transcript${label}:\n\n${chunk}` })
       });
     }
 
-    // Show success
     document.getElementById('formCard').style.display = 'none';
-    document.getElementById('filenameOut').textContent = filename;
     document.getElementById('successCard').style.display = 'block';
 
   } catch(e) {
-    statusMsg.textContent = 'Error sending. Try again.';
+    statusMsg.textContent = 'Error sending. Check connection and try again.';
     statusMsg.className = 'status-msg error';
     document.getElementById('submitBtn').disabled = false;
   }
 }
 
 function resetForm() {
-  selectedType = null;
+  videoFileName = null;
+  selectedType = 'full';
   ['full','short','both'].forEach(t => document.getElementById('btn-'+t).classList.remove('selected'));
-  document.getElementById('title').value = '';
-  document.getElementById('hook').value = '';
-  document.getElementById('rating').value = 7;
-  document.getElementById('ratingVal').textContent = '7';
+  document.getElementById('btn-full').classList.add('selected');
+  document.getElementById('videoFile').value = '';
+  document.getElementById('dzName').style.display = 'none';
+  document.querySelector('#dropzone .dz-text').textContent = 'Click to select or drag & drop your video';
   document.getElementById('transcript').value = '';
-  document.getElementById('preview').textContent = 'Fill in the fields above...';
+  document.getElementById('thumb169').value = '';
+  document.getElementById('thumb916').value = '';
+  document.getElementById('notes').value = '';
   document.getElementById('submitBtn').disabled = false;
   document.getElementById('statusMsg').textContent = '';
   document.getElementById('formCard').style.display = 'block';
   document.getElementById('successCard').style.display = 'none';
 }
-
-selectType('full'); // default
-selectRatio('both'); // default
 </script>
 </body>
 </html>
